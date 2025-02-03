@@ -107,8 +107,22 @@ class RestaurantTest extends TestCase
     public function test_user_cannot_restaurant_create()
     {
         $user = User::factory()->create();
-        $response = $this->actingAs($user)->post(route('admin.restaurants.store'));
-        $response->assertForbidden(); //アクセス禁止
+
+        $restaurantData = [
+            'name' => '新店舗',
+            'description' => 'テスト',
+            'lowest_price' => 1000,
+            'highest_price' => 5000,
+            'postal_code' => '0000000',
+            'address' => 'テスト',
+            'opening_time' => '10:00:00',
+            'closing_time' => '20:00:00',
+            'seating_capacity' => 50
+        ];
+
+        $response = $this->actingAs($user)->post(route('admin.restaurants.store'), $restaurantData);
+        $this->assertDatabaseMissing('restaurants', $restaurantData);
+        $response->assertRedirect(route('admin.login'));
     }
 
     public function test_admin_user_can_restaurant_create()
@@ -120,7 +134,7 @@ class RestaurantTest extends TestCase
         
         $restaurantData = [
             'name' => '新店舗',
-            'address' => '名古屋市',
+            'description' => 'テスト',
             'lowest_price' => 1000,
             'highest_price' => 5000,
             'postal_code' => '0000000',
@@ -130,7 +144,7 @@ class RestaurantTest extends TestCase
             'seating_capacity' => '50',
             
         ];
-        $response = $this->actingAs($admin)->post(route('admin.restaurants.store'), $restaurantData);
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.restaurants.store'), $restaurantData);
         // リダイレクトされたことを確認
         $response->assertStatus(302);
         // 送信したデータがproductsテーブルに保存されていることを検証する
@@ -140,7 +154,7 @@ class RestaurantTest extends TestCase
     //店舗編集ページ
     public function test_guest_cannot_access_admin_restaurant_edit_page()
     {
-        $restaurant = Restaurant::factory()->create();
+        $restaurant = Restaurant::factory()->create(); 
         $response = $this->get(route('admin.restaurants.edit', $restaurant));
         $response->assertRedirect(route('admin.login'));
     }
@@ -151,7 +165,7 @@ class RestaurantTest extends TestCase
         $restaurant = Restaurant::factory()->create();
 
         $response = $this->actingAs($user)->get( route('admin.restaurants.edit', $restaurant)); // ログイン済みユーザーで店舗編集ページにアクセス
-        $response->assertForbidden();
+        $response->assertStatus(302)->assertRedirect(route('admin.login'));
     }
 
     public function test_admin_user_can_access_admin_restaurant_edit_page()
@@ -171,17 +185,33 @@ class RestaurantTest extends TestCase
     public function test_guest_cannot_restaurant_update()
     {
         $restaurant = Restaurant::factory()->create();
-        $response = $this->put(route('restaurants.edit', $restaurant)); //put メソッドで店舗編集のリクエストを送信
-        $response->assertRedirect(route('login')); 
+
+        $response = $this->put(route('admin.restaurants.update', $restaurant)); //put メソッドで店舗編集のリクエストを送信
+        $response->assertRedirect(route('admin.login')); 
     }
 
     public function test_user_cannot_restaurant_updata()
     {
         $user = User::factory()->create();
         $restaurant = Restaurant::factory()->create();
-        $response = $this->actingAs($user)->put(route('restaurants.edit',  $restaurant));
 
-        $response->assertForbidden(); //アクセス禁止
+        $restaurantData = [
+            'name' => '更新店舗',
+            'description' => 'テスト',
+            'lowest_price' => 1000,
+            'highest_price' => 5000,
+            'postal_code' => '0000000',
+            'address' => 'テスト',
+            'opening_time' => '10:00:00',
+            'closing_time' => '20:00:00',
+            'seating_capacity' => '50',
+            
+        ];
+
+        $response = $this->actingAs($user)->put(route('admin.restaurants.update',  ['restaurant' => $restaurant->id] ,$restaurant));
+
+        $this->assertDatabaseMissing('restaurants', $restaurantData);
+        $response->assertRedirect(route('admin.login'));
     }
 
     public function test_admin_user_can_restaurant_updata()
@@ -193,13 +223,26 @@ class RestaurantTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
-        $response = $this->actingAs($admin)->put(route('restaurants.edit',  $restaurant));
+        $restaurantData = [
+            'name' => '更新店舗',
+            'description' => 'テスト',
+            'lowest_price' => 1000,
+            'highest_price' => 5000,
+            'postal_code' => '0000000',
+            'address' => 'テスト',
+            'opening_time' => '10:00:00',
+            'closing_time' => '20:00:00',
+            'seating_capacity' => '50',
+            
+        ];
+
+        $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', ['restaurant' => $restaurant->id], $restaurant));
 
         // リダイレクトされたことを確認
         $response->assertStatus(302);
 
         // データベースが更新されていることを確認
-        $this->assertDatabaseHas('restaurants', $restaurant);
+        $this->assertDatabaseHas('restaurants', array_merge(['id' => $restaurant->id], $restaurantData));
     }
 
     //店舗削除機能
@@ -229,7 +272,7 @@ class RestaurantTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
-        $response = $this->actingAs($admin)->delete(route('restaurants.destroy',  $restaurant));
+        $response = $this->actingAs($admin, 'admin')->delete(route('restaurants.destroy',  $restaurant));
 
         // リダイレクトされたことを確認
         $response->assertStatus(302);

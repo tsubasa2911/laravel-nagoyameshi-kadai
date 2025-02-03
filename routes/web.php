@@ -28,8 +28,10 @@ require __DIR__.'/auth.php';
 
 Route::middleware(['auth:admin'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('home', [Admin\HomeController::class, 'index'])->name('home'); // admin.home ルートを定義
-    Route::resource('users', UserController::class);
-    Route::resource('restaurants', RestaurantController::class);
+    Route::resource('users', Admin\UserController::class);
+    Route::resource('restaurants', Admin\RestaurantController::class);
+
+    Route::put('admin/restaurants/{restaurant}/edit', [RestaurantController::class, 'update'])->name('admin.restaurants.edit');
 });
 
 

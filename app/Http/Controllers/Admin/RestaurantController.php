@@ -42,14 +42,14 @@ class RestaurantController extends Controller
         //バリデーション設定
         $reqest->validate([
             'name' => 'required|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'description' => 'required',
             'lowest_price' => 'required|numeric|min:0|lte:highest_price',
             'highest_price' => 'required|numeric|min:0|gte:lowest_price',
-            'postal_code' => 'required|regex:/^\d{3}-\d{4}$/|max:8',
+            'postal_code' => 'required|digits:7',
             'address' => 'required|',
-            'opening_time' => 'required|date_fomat:H:i',
-            'closing_time' => 'required|date_fomat:H:i|after:opening_time',
+            'opening_time' => 'required|before:closing_time',
+            'closing_time' => 'required|after:opening_time',
             'seating_capacity' => 'required|numeric|min:0',
         ]);
 
@@ -83,26 +83,26 @@ class RestaurantController extends Controller
         $restaurant->save();
 
         // 店舗一覧ページへリダイレクトし、フラッシュメッセージを設定
-        return redirect()->route('restaurants.index')->with('flash_message', '店舗を登録しました。');
+        return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を登録しました。');
     }
     
     public function edit(Restaurant $restaurant) {
         return view('admin.restaurants.edit', compact('restaurant'));
     }
 
-    public function update(Request $reqest) {
+    public function update(Request $reqest, Restaurant $restaurant) {
 
         //バリデーション設定
         $reqest->validate([
             'name' => 'required|max:255',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'description' => 'required',
             'lowest_price' => 'required|numeric|min:0|lte:highest_price',
             'highest_price' => 'required|numeric|min:0|gte:lowest_price',
-            'postal_code' => 'required|regex:/^\d{3}-\d{4}$/|max:8',
+            'postal_code' => 'required|digits:7',
             'address' => 'required|',
-            'opening_time' => 'required|date_fomat:H:i',
-            'closing_time' => 'required|date_fomat:H:i|after:opening_time',
+            'opening_time' => 'required|before:closing_time',
+            'closing_time' => 'required|after:opening_time',
             'seating_capacity' => 'required|numeric|min:0',
         ]);
 
@@ -130,14 +130,14 @@ class RestaurantController extends Controller
             }
 
         // 店舗詳細ページへリダイレクトし、フラッシュメッセージを設定
-        return redirect()->route('restaurants.show', $restaurant)->with('flash_message', '店舗を編集しました。');
+        return redirect()->route('admin.restaurants.show', $restaurant)->with('flash_message', '店舗を編集しました。');
     }
 
     public function destroy(Restaurant $restaurant) 
     {
         // レストランを削除する処理
         $restaurant->delete(); 
-        return redirect()->route('restaurants.index')->with('flash_message', '店舗を削除しました。');
+        return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を削除しました。');
     }
     
 }
