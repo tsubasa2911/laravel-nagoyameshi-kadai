@@ -16,7 +16,7 @@ class RestaurantController extends Controller
         $keyword = $request->input('keyword');
 
         if ($keyword !== null) {
-            $restaurants = Restaurant::where('name', 'like', "%{$keyword}")->pagenate(15);
+            $restaurants = Restaurant::where('name', 'like', "%{$keyword}%")->paginate(15);
         } else {
             //　検索ワードが空の場合、全レコードを取得
             $restaurants = Restaurant::paginate(15);
