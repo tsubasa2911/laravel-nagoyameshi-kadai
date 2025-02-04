@@ -11,9 +11,9 @@ use App\Models\Restaurant;
 
 class RestaurantController extends Controller
 {
-    public function index(Request $reqest) 
+    public function index(Request $request) 
     {
-        $keyword = $reqest->input('keyword');
+        $keyword = $request->input('keyword');
 
         if ($keyword !== null) {
             $restaurants = Restaurant::where('name', 'like', "%{$keyword}")->pagenate(15);
@@ -32,15 +32,15 @@ class RestaurantController extends Controller
         return view('admin.restaurants.show', compact('restaurant'));
     }
 
-    public function create() 
+    public function create(Request $request) 
     {
         return view('admin.restaurants.create');
     }
 
-    public function store(Request $reqest) 
+    public function store(Request $request) 
     {
         //バリデーション設定
-        $reqest->validate([
+        $request->validate([
             'name' => 'required|max:255',
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'description' => 'required',
@@ -55,21 +55,20 @@ class RestaurantController extends Controller
 
         //入力内容をもとにテーブルにデータを追加
         $restaurant = new Restaurant();
-        $restaurant->name = $reqest->input('name');
-        //$restaurant ->image = $reqest->input('image');
-        $restaurant->description = $reqest->input('description');
-        $restaurant->lowest_price = $reqest->input('lowest_price');
-        $restaurant->highest_price = $reqest->input('highest_price');
-        $restaurant->postal_code = $reqest->input('postal_code');
-        $restaurant->address = $reqest->input('address');
-        $restaurant->opening_time = $reqest->input('opening_time');
-        $restaurant->closing_time = $reqest->input('closing_time');
-        $restaurant->seating_capacity = $reqest->input('seating_capacity');
+        $restaurant->name = $request->input('name');
+        $restaurant->description = $request->input('description');
+        $restaurant->lowest_price = $request->input('lowest_price');
+        $restaurant->highest_price = $request->input('highest_price');
+        $restaurant->postal_code = $request->input('postal_code');
+        $restaurant->address = $request->input('address');
+        $restaurant->opening_time = $request->input('opening_time');
+        $restaurant->closing_time = $request->input('closing_time');
+        $restaurant->seating_capacity = $request->input('seating_capacity');
     
-        if ($reqest->hasFile('image')) {
+        if ($request->hasFile('image')) {
 
             // アップロードされたファイル（name="image"）をstorage/app/public/restaurantsフォルダに保存
-            $image_path = $reqest->file('image')->store('public/restaurants');
+            $image_path = $request->file('image')->store('public/restaurants');
 
             // ファイル名を取得
             $imageName = basename('$image_path');
@@ -90,10 +89,10 @@ class RestaurantController extends Controller
         return view('admin.restaurants.edit', compact('restaurant'));
     }
 
-    public function update(Request $reqest, Restaurant $restaurant) {
+    public function update(Request $request, Restaurant $restaurant) {
 
         //バリデーション設定
-        $reqest->validate([
+        $request->validate([
             'name' => 'required|max:255',
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'description' => 'required',
@@ -104,40 +103,40 @@ class RestaurantController extends Controller
             'opening_time' => 'required|before:closing_time',
             'closing_time' => 'required|after:opening_time',
             'seating_capacity' => 'required|numeric|min:0',
-        ]);
+        ]);       
 
             //入力内容をもとにテーブルにデータを追加
-            $restaurant = new Restaurant();
-            $restaurant->name = $reqest->input('name');
-            //$restaurant ->image = $reqest->input('image');
-            $restaurant->description = $reqest->input('description');
-            $restaurant->lowest_price = $reqest->input('lowest_price');
-            $restaurant->highest_price = $reqest->input('highest_price');
-            $restaurant->postal_code = $reqest->input('postal_code');
-            $restaurant->address = $reqest->input('address');
-            $restaurant->opening_time = $reqest->input('opening_time');
-            $restaurant->closing_time = $reqest->input('closing_time');
-            $restaurant->seating_capacity = $reqest->input('seating_capacity');
+            
+            $restaurant->name = $request->input('name');
+            $restaurant->description = $request->input('description');
+            $restaurant->lowest_price = $request->input('lowest_price');
+            $restaurant->highest_price = $request->input('highest_price');
+            $restaurant->postal_code = $request->input('postal_code');
+            $restaurant->address = $request->input('address');
+            $restaurant->opening_time = $request->input('opening_time');
+            $restaurant->closing_time = $request->input('closing_time');
+            $restaurant->seating_capacity = $request->input('seating_capacity');
 
-            if ($reqest->hasFile('image')) {
+            if ($request->hasFile('image')) {
 
                 // アップロードされたファイル（name="image"）をstorage/app/public/restaurantsフォルダに保存
-                $image_path = $reqest->file('image')->store('public/restaurants');
+                $image_path = $request->file('image')->store('public/restaurants');
 
                 // ファイル名を取得
-                $imageName = basename('$image_path');
+                $imageName = basename($image_path);
                 $restaurant->image = $imageName;
             }
-
+        
+            $restaurant->save(); // 保存を確実に行う
         // 店舗詳細ページへリダイレクトし、フラッシュメッセージを設定
-        return redirect()->route('admin.restaurants.show', $restaurant)->with('flash_message', '店舗を編集しました。');
+        return redirect()->route('admin.restaurants.show', $restaurant->id)->with('flash_message', '店舗を編集しました。');
     }
 
-    public function destroy(Restaurant $restaurant) 
+    public function destroy(Request $request, Restaurant $restaurant) 
     {
         // レストランを削除する処理
         $restaurant->delete(); 
-        return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を削除しました。');
+        return redirect()->route('admin.restaurants.index', $restaurant->id)->with('flash_message', '店舗を削除しました。');
     }
     
 }

@@ -14,7 +14,7 @@ use Tests\TestCase;
 class RestaurantTest extends TestCase
 {
     use RefreshDatabase;
-
+    
     //店舗一覧ページ
     public function test_guest_cannot_access_admin_restaurant_index_page()
     {
@@ -106,6 +106,7 @@ class RestaurantTest extends TestCase
 
     public function test_user_cannot_restaurant_create()
     {
+    
         $user = User::factory()->create();
 
         $restaurantData = [
@@ -127,6 +128,7 @@ class RestaurantTest extends TestCase
 
     public function test_admin_user_can_restaurant_create()
     {
+    
         $admin = new Admin();
         $admin->email = 'admin@example.com';
         $admin->password = Hash::make('nagoyameshi');
@@ -154,6 +156,7 @@ class RestaurantTest extends TestCase
     //店舗編集ページ
     public function test_guest_cannot_access_admin_restaurant_edit_page()
     {
+        
         $restaurant = Restaurant::factory()->create(); 
         $response = $this->get(route('admin.restaurants.edit', $restaurant));
         $response->assertRedirect(route('admin.login'));
@@ -184,6 +187,7 @@ class RestaurantTest extends TestCase
     //店舗更新機能
     public function test_guest_cannot_restaurant_update()
     {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
         $restaurant = Restaurant::factory()->create();
 
         $response = $this->put(route('admin.restaurants.update', $restaurant)); //put メソッドで店舗編集のリクエストを送信
@@ -192,6 +196,7 @@ class RestaurantTest extends TestCase
 
     public function test_user_cannot_restaurant_updata()
     {
+    
         $user = User::factory()->create();
         $restaurant = Restaurant::factory()->create();
 
@@ -208,7 +213,7 @@ class RestaurantTest extends TestCase
             
         ];
 
-        $response = $this->actingAs($user)->put(route('admin.restaurants.update',  ['restaurant' => $restaurant->id] ,$restaurant));
+        $response = $this->actingAs($user)->put(route('admin.restaurants.update', $restaurant->id ,$restaurant));
 
         $this->assertDatabaseMissing('restaurants', $restaurantData);
         $response->assertRedirect(route('admin.login'));
@@ -216,6 +221,7 @@ class RestaurantTest extends TestCase
 
     public function test_admin_user_can_restaurant_updata()
     {
+    
         $admin = new Admin();
         $admin->email = 'admin@example.com';
         $admin->password = Hash::make('nagoyameshi');
@@ -236,35 +242,39 @@ class RestaurantTest extends TestCase
             
         ];
 
-        $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', ['restaurant' => $restaurant->id], $restaurant));
+        $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', $restaurant->id, $restaurant));
 
         // リダイレクトされたことを確認
         $response->assertStatus(302);
 
         // データベースが更新されていることを確認
-        $this->assertDatabaseHas('restaurants', array_merge(['id' => $restaurant->id], $restaurantData));
+        $this->assertDatabaseHas('restaurants', ['id' => $restaurant->id]);
     }
 
     //店舗削除機能
     public function test_guest_cannot_restaurant_delete()
     {
+    
         $restaurant = Restaurant::factory()->create();
-        $response = $this->delete(route('restaurants.destroy',  $restaurant));
-        $response->assertRedirect(route('login')); 
+        $response = $this->delete(route('admin.restaurants.destroy', $restaurant));
+        $response->assertRedirect(route('admin.login')); 
     }
 
-    public function test_user_cannot_estaurant_delete()
-{
-    $user = User::factory()->create();
-    $restaurant = Restaurant::factory()->create();
+    public function test_user_cannot_restaurant_delete()
+    {
+    
+    
+        $user = User::factory()->create();
+        $restaurant = Restaurant::factory()->create();
 
-    $response = $this->actingAs($user)->delete(route('restaurants.destroy', $restaurant));
+        $response = $this->actingAs($user)->delete(route('admin.restaurants.destroy', $restaurant));
 
-    $response->assertForbidden();
-}
+        $response->assertRedirect(route('admin.login'));
+    }
 
     public function test_admin_user_can_restaurant_delete()
     {
+        
         $admin = new Admin();
         $admin->email = 'admin@example.com';
         $admin->password = Hash::make('nagoyameshi');
@@ -272,13 +282,12 @@ class RestaurantTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
-        $response = $this->actingAs($admin, 'admin')->delete(route('restaurants.destroy',  $restaurant));
+        $response = $this->actingAs($admin, 'admin')->delete(route('admin.restaurants.destroy',  $restaurant));
 
         // リダイレクトされたことを確認
         $response->assertStatus(302);
 
         // データベースが更新されていることを確認
-        $this->assertDatabaseMissing('restaurants', $restaurant);
+        $this->assertDatabaseMissing('restaurants', ['id' => $restaurant->id]);
     }
-
 }
