@@ -71,7 +71,7 @@ class RestaurantController extends Controller
             $image_path = $request->file('image')->store('public/restaurants');
 
             // ファイル名を取得
-            $imageName = basename('$image_path');
+            $imageName = basename($image_path);
             $restaurant->image = $imageName;
 
         } else {
