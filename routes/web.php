@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RestaurantController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin;
 
@@ -31,8 +32,6 @@ Route::middleware(['auth:admin'])->prefix('admin')->as('admin.')->group(function
     Route::resource('users', Admin\UserController::class);
     Route::resource('restaurants', Admin\RestaurantController::class);
 
-    Route::put('admin/restaurants/{restaurant}/edit', [RestaurantController::class, 'update'])->name('admin.restaurants.edit');
+    Route::resource('categories', Admin\CategoryController::class);
 });
-
-
 
