@@ -156,12 +156,23 @@ class RestaurantTest extends TestCase
             'category_ids' => $category_ids
         ];
 
-
         $response = $this->actingAs($admin, 'admin')->post(route('admin.restaurants.store'), $restaurantData);
         // リダイレクトされたことを確認
         $response->assertRedirect(route('admin.restaurants.index'));
         // 送信したデータがrestaurantsテーブルに保存されていることを検証する
-        $this->assertDatabaseHas('restaurants', $restaurantData);
+        unset($restaurantData['category_ids']);
+        $this->assertDatabaseHas('restaurants', [
+            'name' => $restaurantData['name'],
+            'description' => $restaurantData['description'],
+            'lowest_price' => $restaurantData['lowest_price'],
+            'highest_price' => $restaurantData['highest_price'],
+            'postal_code' => $restaurantData['postal_code'],
+            'address' => $restaurantData['address'],
+            'opening_time' => $restaurantData['opening_time'],
+            'closing_time' => $restaurantData['closing_time'],
+            'seating_capacity' => $restaurantData['seating_capacity']
+        
+        ]);
 
         // 直近のレストランIDを取得
         $restaurant = Restaurant::latest('id')->first();
@@ -269,13 +280,14 @@ class RestaurantTest extends TestCase
             'category_ids' => $category_ids    
         ];
 
-        $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', $restaurant->id, $restaurant));
+        $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', $restaurant), $restaurantData);
 
         // リダイレクトされたことを確認
         $response->assertStatus(302);
 
         // データベースが更新されていることを確認
-        $this->assertDatabaseHas('restaurants', ['id' => $restaurant->id]);
+        unset($restaurantData['category_ids']);
+        $this->assertDatabaseHas('restaurants', $restaurantData);
 
          // 直近のレストランIDを取得
         $restaurant = Restaurant::latest('id')->first();

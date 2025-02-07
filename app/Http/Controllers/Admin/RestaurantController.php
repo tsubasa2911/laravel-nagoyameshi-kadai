@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Admin\CategoryController;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Restaurant;
+use App\Models\Category;
 
 
 class RestaurantController extends Controller
@@ -66,10 +66,6 @@ class RestaurantController extends Controller
         $restaurant->opening_time = $request->input('opening_time');
         $restaurant->closing_time = $request->input('closing_time');
         $restaurant->seating_capacity = $request->input('seating_capacity');
-
-        //HTTPリクエストから取得したcategory_idsパラメータ（カテゴリのIDの配列）にもとづいて、category_restaurantテーブルにデータを追加する処理
-        $category_ids = array_filter($request->input('category_ids'));
-        $restaurant->categories()->sync($category_ids);
     
         if ($request->hasFile('image')) {
 
@@ -86,6 +82,10 @@ class RestaurantController extends Controller
         }
 
         $restaurant->save();
+
+        //HTTPリクエストから取得したcategory_idsパラメータ（カテゴリのIDの配列）にもとづいて、category_restaurantテーブルにデータを追加する処理
+        $category_ids = array_filter($request->input('category_ids'));
+        $restaurant->categories()->sync($category_ids);
 
         // 店舗一覧ページへリダイレクトし、フラッシュメッセージを設定
         return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を登録しました。');
@@ -112,7 +112,7 @@ class RestaurantController extends Controller
             'opening_time' => 'required|before:closing_time',
             'closing_time' => 'required|after:opening_time',
             'seating_capacity' => 'required|numeric|min:0',
-        ]);       
+            ]);       
 
             //入力内容をもとにテーブルにデータを追加
             
@@ -127,9 +127,7 @@ class RestaurantController extends Controller
             $restaurant->seating_capacity = $request->input('seating_capacity');
 
             $restaurant->save();
-            $category_ids = array_filter($request->input('category_ids'));
-            $restaurant->categories()->sync($category_ids);
-
+            
             if ($request->hasFile('image')) {
 
                 // アップロードされたファイル（name="image"）をstorage/app/public/restaurantsフォルダに保存
@@ -140,9 +138,11 @@ class RestaurantController extends Controller
                 $restaurant->image = $imageName;
             }
         
-            $restaurant->save(); // 保存を確実に行う
-        // 店舗詳細ページへリダイレクトし、フラッシュメッセージを設定
-        return redirect()->route('admin.restaurants.show', $restaurant->id)->with('flash_message', '店舗を編集しました。');
+            $category_ids = array_filter($request->input('category_ids'));
+            $restaurant->categories()->sync($category_ids);
+
+            // 店舗詳細ページへリダイレクトし、フラッシュメッセージを設定
+            return redirect()->route('admin.restaurants.show', $restaurant->id)->with('flash_message', '店舗を編集しました。');
     }
 
     public function destroy(Request $request, Restaurant $restaurant) 
