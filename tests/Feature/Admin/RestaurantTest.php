@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Restaurant;
 use App\Models\User;
 use App\Models\Admin;
+use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
@@ -102,6 +103,8 @@ class RestaurantTest extends TestCase
     {
         $response = $this->post(route('admin.restaurants.store')); //post メソッドで店舗登録のリクエストを送信
         $response->assertRedirect(route('admin.login')); // ログインページにリダイレクト
+
+
     }
 
     public function test_user_cannot_restaurant_create()
@@ -134,6 +137,12 @@ class RestaurantTest extends TestCase
         $admin->password = Hash::make('nagoyameshi');
         $admin->save();
         
+
+        // カテゴリのダミーデータを3つ作成し、それらのIDの配列を定義
+        $categories = Category::factory(3)->create();
+        $category_ids = $categories->pluck('id')->toArray();
+
+        // 送信するデータ（$restaurant_dataまたは$new_restaurant_data）にcategory_idsパラメータを追加する
         $restaurantData = [
             'name' => '新店舗',
             'description' => 'テスト',
@@ -143,14 +152,28 @@ class RestaurantTest extends TestCase
             'address' => 'テスト',
             'opening_time' => '10:00:00',
             'closing_time' => '20:00:00',
-            'seating_capacity' => '50',
-            
+            'seating_capacity' => 50,
+            'category_ids' => $category_ids
         ];
+
+
         $response = $this->actingAs($admin, 'admin')->post(route('admin.restaurants.store'), $restaurantData);
         // リダイレクトされたことを確認
-        $response->assertStatus(302);
-        // 送信したデータがproductsテーブルに保存されていることを検証する
+        $response->assertRedirect(route('admin.restaurants.index'));
+        // 送信したデータがrestaurantsテーブルに保存されていることを検証する
         $this->assertDatabaseHas('restaurants', $restaurantData);
+
+        // 直近のレストランIDを取得
+        $restaurant = Restaurant::latest('id')->first();
+
+
+        // カテゴリとレストランの関連付けが正しくされていることの確認
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseHas('category_restaurant', [
+                    'restaurant_id' => $restaurant->id,
+                    'category_id' => $category_id,
+            ]);
+        }
     }
 
     //店舗編集ページ
@@ -229,6 +252,10 @@ class RestaurantTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
+        // カテゴリのダミーデータを3つ作成し、それらのIDの配列を定義
+        $categories = Category::factory(3)->create();
+        $category_ids = $categories->pluck('id')->toArray();
+
         $restaurantData = [
             'name' => '更新店舗',
             'description' => 'テスト',
@@ -239,7 +266,7 @@ class RestaurantTest extends TestCase
             'opening_time' => '10:00:00',
             'closing_time' => '20:00:00',
             'seating_capacity' => '50',
-            
+            'category_ids' => $category_ids    
         ];
 
         $response = $this->actingAs($admin, 'admin')->put(route('admin.restaurants.update', $restaurant->id, $restaurant));
@@ -249,6 +276,18 @@ class RestaurantTest extends TestCase
 
         // データベースが更新されていることを確認
         $this->assertDatabaseHas('restaurants', ['id' => $restaurant->id]);
+
+         // 直近のレストランIDを取得
+        $restaurant = Restaurant::latest('id')->first();
+
+
+         // カテゴリとレストランの関連付けが正しくされていることの確認
+        foreach ($category_ids as $category_id) {
+            $this->assertDatabaseHas('category_restaurant', [
+                    'restaurant_id' => $restaurant->id,
+                    'category_id' => $category_id,
+            ]);
+        }
     }
 
     //店舗削除機能

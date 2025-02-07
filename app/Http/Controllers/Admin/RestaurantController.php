@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\CategoryController;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,7 +35,8 @@ class RestaurantController extends Controller
 
     public function create(Request $request) 
     {
-        return view('admin.restaurants.create');
+        $categories =Category::all();
+        return view('admin.restaurants.create', compact('categories'));
     }
 
     public function store(Request $request) 
@@ -64,6 +66,10 @@ class RestaurantController extends Controller
         $restaurant->opening_time = $request->input('opening_time');
         $restaurant->closing_time = $request->input('closing_time');
         $restaurant->seating_capacity = $request->input('seating_capacity');
+
+        //HTTPリクエストから取得したcategory_idsパラメータ（カテゴリのIDの配列）にもとづいて、category_restaurantテーブルにデータを追加する処理
+        $category_ids = array_filter($request->input('category_ids'));
+        $restaurant->categories()->sync($category_ids);
     
         if ($request->hasFile('image')) {
 
@@ -86,7 +92,10 @@ class RestaurantController extends Controller
     }
     
     public function edit(Restaurant $restaurant) {
-        return view('admin.restaurants.edit', compact('restaurant'));
+        $categories =Category::all();
+        // 設定されたカテゴリのIDを配列化する
+        $category_ids = $restaurant->categories->pluck('id')->toArray();
+        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids'));
     }
 
     public function update(Request $request, Restaurant $restaurant) {
@@ -116,6 +125,10 @@ class RestaurantController extends Controller
             $restaurant->opening_time = $request->input('opening_time');
             $restaurant->closing_time = $request->input('closing_time');
             $restaurant->seating_capacity = $request->input('seating_capacity');
+
+            $restaurant->save();
+            $category_ids = array_filter($request->input('category_ids'));
+            $restaurant->categories()->sync($category_ids);
 
             if ($request->hasFile('image')) {
 
