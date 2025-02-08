@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Restaurant;
 use App\Models\Category;
+use App\Models\RegularHoliday;
 
 
 class RestaurantController extends Controller
@@ -36,7 +37,8 @@ class RestaurantController extends Controller
     public function create(Request $request) 
     {
         $categories =Category::all();
-        return view('admin.restaurants.create', compact('categories'));
+        $regular_holiday =RegularHoliday::all();
+        return view('admin.restaurants.create', compact('categories', 'regular_holiday'));
     }
 
     public function store(Request $request) 
@@ -87,15 +89,22 @@ class RestaurantController extends Controller
         $category_ids = array_filter($request->input('category_ids'));
         $restaurant->categories()->sync($category_ids);
 
+        // HTTPリクエストから取得したregular_holiday_idsパラメータ（定休日のIDの配列）にもとづいて、regular_holiday_restaurantテーブルのデータを同期する処理
+        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+        $restaurant->regular_holidays()->sync($regular_holiday_ids);
+
+
         // 店舗一覧ページへリダイレクトし、フラッシュメッセージを設定
         return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を登録しました。');
     }
     
     public function edit(Restaurant $restaurant) {
         $categories =Category::all();
+        $regular_holiday =RegularHoliday::all();
+
         // 設定されたカテゴリのIDを配列化する
         $category_ids = $restaurant->categories->pluck('id')->toArray();
-        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids'));
+        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids', 'regular_holiday'));
     }
 
     public function update(Request $request, Restaurant $restaurant) {
@@ -140,6 +149,10 @@ class RestaurantController extends Controller
         
             $category_ids = array_filter($request->input('category_ids'));
             $restaurant->categories()->sync($category_ids);
+
+             // HTTPリクエストから取得したregular_holiday_idsパラメータ（定休日のIDの配列）にもとづいて、regular_holiday_restaurantテーブルのデータを同期する処理
+            $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+            $restaurant->regular_holidays()->sync($regular_holiday_ids);
 
             // 店舗詳細ページへリダイレクトし、フラッシュメッセージを設定
             return redirect()->route('admin.restaurants.show', $restaurant->id)->with('flash_message', '店舗を編集しました。');
