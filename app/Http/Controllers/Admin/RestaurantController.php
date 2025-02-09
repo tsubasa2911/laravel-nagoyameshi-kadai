@@ -90,7 +90,7 @@ class RestaurantController extends Controller
         $restaurant->categories()->sync($category_ids);
 
         // HTTPリクエストから取得したregular_holiday_idsパラメータ（定休日のIDの配列）にもとづいて、regular_holiday_restaurantテーブルのデータを同期する処理
-        $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+        $regular_holiday_ids = $request->input('regular_holiday_ids') ? array_filter($request->input('regular_holiday_ids')) : [];
         $restaurant->regular_holidays()->sync($regular_holiday_ids);
 
 
@@ -151,7 +151,7 @@ class RestaurantController extends Controller
             $restaurant->categories()->sync($category_ids);
 
              // HTTPリクエストから取得したregular_holiday_idsパラメータ（定休日のIDの配列）にもとづいて、regular_holiday_restaurantテーブルのデータを同期する処理
-            $regular_holiday_ids = array_filter($request->input('regular_holiday_ids'));
+            $regular_holiday_ids = $request->input('regular_holiday_ids') ? array_filter($request->input('regular_holiday_ids')) : [];
             $restaurant->regular_holidays()->sync($regular_holiday_ids);
 
             // 店舗詳細ページへリダイレクトし、フラッシュメッセージを設定
