@@ -37,8 +37,8 @@ class RestaurantController extends Controller
     public function create(Request $request) 
     {
         $categories =Category::all();
-        $regular_holiday =RegularHoliday::all();
-        return view('admin.restaurants.create', compact('categories', 'regular_holiday'));
+        $regular_holidays =RegularHoliday::all();
+        return view('admin.restaurants.create', compact('categories', 'regular_holidays'));
     }
 
     public function store(Request $request) 
@@ -100,11 +100,11 @@ class RestaurantController extends Controller
     
     public function edit(Restaurant $restaurant) {
         $categories =Category::all();
-        $regular_holiday =RegularHoliday::all();
+        $regular_holidays =RegularHoliday::all();
 
         // 設定されたカテゴリのIDを配列化する
         $category_ids = $restaurant->categories->pluck('id')->toArray();
-        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids', 'regular_holiday'));
+        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids', 'regular_holidays'));
     }
 
     public function update(Request $request, Restaurant $restaurant) {
