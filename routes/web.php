@@ -36,5 +36,7 @@ Route::middleware(['auth:admin'])->prefix('admin')->as('admin.')->group(function
     Route::resource('categories', Admin\CategoryController::class);
     Route::resource('company', Admin\CompanyController::class);
     Route::resource('terms', Admin\TermController::class);
+
+    
 });
 
