@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Restaurant;
+use App\Models\Category;
 
 class HomeController extends Controller
 {
@@ -10,8 +12,8 @@ class HomeController extends Controller
     {
         $highly_rated_restaurants = Restaurant::all()->take(6);
         $categories = Category::all();
-        $new_restaurants = Restaurants::orderBy('created_at', 'desc')->take(6);
+        $new_restaurants = Restaurant::orderBy('created_at', 'desc')->take(6);
 
-        return view('views.home', compact('highly_rated_restaurants', 'categories', 'new_restaurants'));
+        return view('home', compact('highly_rated_restaurants', 'categories', 'new_restaurants'));
     }
 }

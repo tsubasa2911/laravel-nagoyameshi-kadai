@@ -5,10 +5,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\AdminController;
+
+//use App\Http\Controllers\Admin\HomeController as AdminHomeController; // エイリアスを使用
+use App\Http\Controllers\HomeController;
+
+
 
 
 /*
@@ -31,7 +35,7 @@ require __DIR__.'/auth.php';
 
 
 Route::middleware(['auth:admin'])->prefix('admin')->as('admin.')->group(function () {
-    Route::get('home', [Admin\HomeController::class, 'index'])->name('home'); // admin.home ルートを定義
+    Route::get('home', [Admin\HomeController::class, 'index'])->name('admin.home'); // admin.home ルートを定義
     Route::resource('users', Admin\UserController::class);
     Route::resource('restaurants', Admin\RestaurantController::class);
     Route::resource('categories', Admin\CategoryController::class);
@@ -41,5 +45,5 @@ Route::middleware(['auth:admin'])->prefix('admin')->as('admin.')->group(function
 
 Route::group(['middleware' => 'guest:admin'], function () {
     // トップページ
-    Route::get('/', [HomeController::class, 'index'])->name('user.home');
-});
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+}); 
