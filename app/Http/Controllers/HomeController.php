@@ -10,7 +10,7 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $highly_rated_restaurants = Restaurant::all()->take(6)->get();
+        $highly_rated_restaurants = Restaurant::all()->take(6);
         $categories = Category::all();
         $new_restaurants = Restaurant::orderBy('created_at', 'desc')->take(6)->get();
 
